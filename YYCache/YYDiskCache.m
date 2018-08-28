@@ -50,10 +50,12 @@ static NSString *_YYNSStringMD5(NSString *string) {
 static NSMapTable *_globalInstances;
 static dispatch_semaphore_t _globalInstancesLock;
 
+//
 static void _YYDiskCacheInitGlobal() {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _globalInstancesLock = dispatch_semaphore_create(1);
+        // mapTable对象,类似于NSMutableDictionary
         _globalInstances = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory valueOptions:NSPointerFunctionsWeakMemory capacity:0];
     });
 }
@@ -175,7 +177,7 @@ static void _YYDiskCacheSetGlobal(YYDiskCache *cache) {
              inlineThreshold:(NSUInteger)threshold {
     self = [super init];
     if (!self) return nil;
-    
+    // 获取磁盘缓存
     YYDiskCache *globalCache = _YYDiskCacheGetGlobal(path);
     if (globalCache) return globalCache;
     

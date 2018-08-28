@@ -31,7 +31,7 @@ static NSString *const kTrashDirectoryName = @"trash";
 
 
 /*
- File:
+ File:文件存储
  /path/
       /manifest.sqlite
       /manifest.sqlite-shm
@@ -42,7 +42,7 @@ static NSString *const kTrashDirectoryName = @"trash";
       /trash/
             /unused_file_or_folder
  
- SQL:
+ SQL:数据库存储
  create table if not exists manifest (
     key                 text,
     filename            text,
@@ -84,9 +84,9 @@ static UIApplication *_YYSharedApplication() {
     NSString *_trashPath;
     
     sqlite3 *_db;
-    CFMutableDictionaryRef _dbStmtCache;
-    NSTimeInterval _dbLastOpenErrorTime;
-    NSUInteger _dbOpenErrorCount;
+    CFMutableDictionaryRef _dbStmtCache;//使用预处理stmt对数据库进行优化,避免不必要的开销
+    NSTimeInterval _dbLastOpenErrorTime;//上次打开数据库错误的时间
+    NSUInteger _dbOpenErrorCount;//打开数据库错误的次数
 }
 
 
@@ -95,7 +95,7 @@ static UIApplication *_YYSharedApplication() {
 - (BOOL)_dbOpen {
     if (_db) return YES;
     
-    int result = sqlite3_open(_dbPath.UTF8String, &_db);
+    int result = sqlite3_open(_dbPath.UTF8String, &_db);//创建_db
     if (result == SQLITE_OK) {
         CFDictionaryKeyCallBacks keyCallbacks = kCFCopyStringDictionaryKeyCallBacks;
         CFDictionaryValueCallBacks valueCallbacks = {0};
@@ -611,24 +611,28 @@ static UIApplication *_YYSharedApplication() {
 }
 
 
-#pragma mark - file
+#pragma mark - file  文件存储
 
+// 文件写入
 - (BOOL)_fileWriteWithName:(NSString *)filename data:(NSData *)data {
     NSString *path = [_dataPath stringByAppendingPathComponent:filename];
     return [data writeToFile:path atomically:NO];
 }
 
+// 文件读取
 - (NSData *)_fileReadWithName:(NSString *)filename {
     NSString *path = [_dataPath stringByAppendingPathComponent:filename];
     NSData *data = [NSData dataWithContentsOfFile:path];
     return data;
 }
 
+// 删除文件
 - (BOOL)_fileDeleteWithName:(NSString *)filename {
     NSString *path = [_dataPath stringByAppendingPathComponent:filename];
     return [[NSFileManager defaultManager] removeItemAtPath:path error:NULL];
 }
 
+// 将所有缓存文件移到trash路径
 - (BOOL)_fileMoveAllToTrash {
     CFUUIDRef uuidRef = CFUUIDCreate(NULL);
     CFStringRef uuid = CFUUIDCreateString(NULL, uuidRef);
@@ -636,6 +640,7 @@ static UIApplication *_YYSharedApplication() {
     NSString *tmpPath = [_trashPath stringByAppendingPathComponent:(__bridge NSString *)(uuid)];
     BOOL suc = [[NSFileManager defaultManager] moveItemAtPath:_dataPath toPath:tmpPath error:nil];
     if (suc) {
+        // 移动文件成功,重新创建缓存文件夹
         suc = [[NSFileManager defaultManager] createDirectoryAtPath:_dataPath withIntermediateDirectories:YES attributes:nil error:NULL];
     }
     CFRelease(uuid);

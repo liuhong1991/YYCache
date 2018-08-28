@@ -20,15 +20,19 @@
     return [self initWithPath:@""];
 }
 
+//根据name创建cache对象
 - (instancetype)initWithName:(NSString *)name {
     if (name.length == 0) return nil;
+    //获取cache文件夹
     NSString *cacheFolder = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
+    //拼接文件路径
     NSString *path = [cacheFolder stringByAppendingPathComponent:name];
     return [self initWithPath:path];
 }
 
 - (instancetype)initWithPath:(NSString *)path {
     if (path.length == 0) return nil;
+    // 创建磁盘缓存
     YYDiskCache *diskCache = [[YYDiskCache alloc] initWithPath:path];
     if (!diskCache) return nil;
     NSString *name = [path lastPathComponent];

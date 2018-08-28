@@ -44,13 +44,15 @@ NS_ASSUME_NONNULL_BEGIN
  See <http://www.sqlite.org/intern-v-extern-blob.html> for more information.
  */
 typedef NS_ENUM(NSUInteger, YYKVStorageType) {
-    
+    // value作为文件存储在系统文件中
     /// The `value` is stored as a file in file system.
     YYKVStorageTypeFile = 0,
     
+    // value存储在数据库
     /// The `value` is stored in sqlite with blob type.
     YYKVStorageTypeSQLite = 1,
     
+    // 如何存储根据选择
     /// The `value` is stored in file system or sqlite based on your choice.
     YYKVStorageTypeMixed = 2,
 };
